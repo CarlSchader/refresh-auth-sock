@@ -15,7 +15,7 @@
     packages.default = pkgs.rustPlatform.buildRustPackage {
       name = "refresh-auth-sock";
       version = "0.1.0";
-      cargoHash = "";
+      cargoHash = "sha256-U8QyHJO6U+QK63LJ+hd2sphm8KDBrOVSzqnF+zmN+q4=";
       nativeBuildInputs = with pkgs; [ cargo ];
       src = ./.;
     };
