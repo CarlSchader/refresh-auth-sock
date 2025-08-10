@@ -54,11 +54,11 @@ fn display_table(found: &[SSHSocket]) {
     let current_var = env::var("SSH_AUTH_SOCK").unwrap_or_default();
     
     if found.is_empty() {
-        println!("No SSH agent sockets found.");
+        eprintln!("No SSH agent sockets found.");
     } else {
-        println!("┌─────┬─────────┬─────────────────────┬─────────────────────────────────────────┐");
-        println!("│ Idx │ Status  │ Modified            │ Socket Path                             │");
-        println!("├─────┼─────────┼─────────────────────┼─────────────────────────────────────────┤");
+        eprintln!("┌─────┬─────────┬─────────────────────┬─────────────────────────────────────────┐");
+        eprintln!("│ Idx │ Status  │ Modified            │ Socket Path                             │");
+        eprintln!("├─────┼─────────┼─────────────────────┼─────────────────────────────────────────┤");
         
         for (idx, sock) in found.iter().enumerate() {
             let status = if sock.name == current_var { "CURRENT" } else { "       " };
@@ -66,11 +66,11 @@ fn display_table(found: &[SSHSocket]) {
                 .map(|ts| DateTime::<Local>::from(ts).format("%Y-%m-%d %H:%M:%S").to_string())
                 .unwrap_or_else(|| "Unknown".to_string());
             
-            println!("│ {:>3} │ {} │ {:>19} │ {:<39} │", 
+            eprintln!("│ {:>3} │ {} │ {:>19} │ {:<39} │", 
                 idx + 1, status, timestamp, sock.name);
         }
         
-        println!("└─────┴─────────┴─────────────────────┴─────────────────────────────────────────┘");
+        eprintln!("└─────┴─────────┴─────────────────────┴─────────────────────────────────────────┘");
     }
 }
 
@@ -115,7 +115,7 @@ fn main() -> io::Result<()> {
                 }
             },
             _ => {
-                println!("Invalid selection. Please enter a number between 1 and {} or 'q' to quit.", found.len());
+                eprintln!("Invalid selection. Please enter a number between 1 and {} or 'q' to quit.", found.len());
                 print!("Press Enter to continue...");
                 io::stdout().flush()?;
                 let mut _dummy = String::new();
@@ -123,6 +123,8 @@ fn main() -> io::Result<()> {
             }
         }
     }
+
+    println!("export SSH_AUTH_SOCK={}", env::var("SSH_AUTH_SOCK").unwrap_or_default());
 
     Ok(())
 }
