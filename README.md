@@ -47,6 +47,46 @@ example, in bash / zsh:
 
     eval $(./target/release/refresh-auth-sock)
 
+Shell usage notes
+-----------------
+There are a few ways to evaluate the export command the program prints; choose the one
+that matches your shell.
+
+- Bash / Zsh / POSIX sh:
+
+    eval "$(./target/release/refresh-auth-sock -r)"
+
+  This runs the command, captures its stdout, and evaluates the printed `export ...`
+  line in your current shell. You can also use process substitution in bash/zsh:
+
+    source <(./target/release/refresh-auth-sock -r)
+
+  Both of these approaches read the command's output and apply it to the current shell.
+
+- Fish shell:
+
+    eval (./target/release/refresh-auth-sock -r)
+
+  Fish uses a different syntax for command substitution; `source <(...)` is not
+  portable to fish.
+
+What not to do
+-------------
+- Do not pipe the program into `eval`, e.g. `./refresh-auth-sock -r | eval` — `eval` is
+  a shell builtin that evaluates its arguments and does not read stdin, so the pipe's
+  read end closes immediately. The writer sees a closed pipe and may get a broken-pipe
+  (EPIPE) error when writing its output.
+
+- Do not use `eval <(./refresh-auth-sock -r)`. Process substitution passes a filename
+  (like /dev/fd/63) as an argument to `eval`; `eval` will not read that FD and the
+  producer can end up writing to a pipe with no reader.
+
+If you encounter a panic showing "failed printing to stdout: Broken pipe (os error 32)"
+it's because the program tried to write to stdout after the read end of the pipe was
+closed (see above). You can avoid a noisy backtrace by not enabling RUST_BACKTRACE, or
+by using one of the recommended evaluation methods so the parent shell consumes the
+command output.
+
 Notes
 -----
 - The program searches /tmp only. If your system places agent sockets elsewhere you can
