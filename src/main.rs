@@ -1,5 +1,6 @@
 use std::{env, fs, io::{self, Write}, os::unix::fs::FileTypeExt, path::PathBuf, time::SystemTime};
 use chrono::{DateTime, Local};
+use clap::Parser;
 
 struct SSHSocket {
     name: String,
@@ -75,11 +76,35 @@ fn display_table(found: &[SSHSocket]) {
 }
 
 fn clear_screen() {
-    print!("\x1B[2J\x1B[1;1H");
+    eprint!("\x1B[2J\x1B[1;1H");
     io::stdout().flush().unwrap();
 }
 
 fn main() -> io::Result<()> {
+    #[derive(Parser, Debug)]
+    #[command(about = "Select or print SSH_AUTH_SOCK from available agent sockets")]
+    struct Args {
+        /// Pick the most recent auth sock and print export statement
+        #[arg(short = 'r', long = "recent")]
+        recent: bool,
+    }
+
+    let args = Args::parse();
+
+    if args.recent {
+        let found = find_sockets();
+        if found.is_empty() {
+            // keep behavior similar to interactive mode
+            eprintln!("No SSH agent sockets found.");
+            return Ok(());
+        }
+
+        let selected_socket = &found[0];
+        // env::set_var("SSH_AUTH_SOCK", &selected_socket.name);
+        println!("export SSH_AUTH_SOCK={}", selected_socket.name);
+        return Ok(());
+    }
+
     let stdin = io::stdin();
     let mut first_run = true;
     
@@ -96,7 +121,7 @@ fn main() -> io::Result<()> {
             return Ok(());
         }
         
-        print!("\nEnter socket number (1-{}) or 'q' to quit: ", found.len());
+        eprint!("\nEnter socket number (1-{}) or 'q' to quit: ", found.len());
         io::stdout().flush()?;
         
         let mut input = String::new();
@@ -116,7 +141,7 @@ fn main() -> io::Result<()> {
             },
             _ => {
                 eprintln!("Invalid selection. Please enter a number between 1 and {} or 'q' to quit.", found.len());
-                print!("Press Enter to continue...");
+                eprint!("Press Enter to continue...");
                 io::stdout().flush()?;
                 let mut _dummy = String::new();
                 stdin.read_line(&mut _dummy)?;
