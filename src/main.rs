@@ -82,7 +82,7 @@ fn clear_screen() {
 
 fn main() -> io::Result<()> {
     #[derive(Parser, Debug)]
-    #[command(about = "Select or print SSH_AUTH_SOCK from available agent sockets")]
+    #[command(about = "Select or print SSH_AUTH_SOCK from available agent sockets. Use with eval \"$(refresh-auth-sock -r)\" or source <(refresh-auth-sock -r)\"")]
     struct Args {
         /// Pick the most recent auth sock and print export statement
         #[arg(short = 'r', long = "recent")]
